@@ -8,81 +8,61 @@ using System.Windows;
 
 namespace elastic_collisions
 {
-  class Entity
+  class Entity : ICollisionManager
   {
-    public Entity(System.Windows.Point location, Vector velocity, int radius, double loss)
+    public Entity(Rectangle display, System.Windows.Point position, Vector velocity, int radius, double loss, double gravity)
     {
-      this.location = location;
+      this.display = display;
+      this.position = position;
       this.velocity = velocity;
       this.radius = radius;
       this.loss = loss;
+      this.gravity = gravity;
       mass = Math.PI * Math.Pow(radius, 2);
-      brush = new SolidBrush(Color.Black);
     }
 
-    public List<Entity> collidesWith(List<Entity> entities)
+    public Rectangle BoundingBox
     {
-      List<Entity> collisions = new List<Entity>();
-
-      foreach (Entity entity in entities)
+      get
       {
-        if (entity != this && (location - entity.location).Length <= radius + entity.radius)
-        {
-          collisions.Add(entity);
-        }
+        return new Rectangle((int)(position.X - radius), (int)(position.Y - radius), (int)(radius * 2), (int)(radius * 2));
       }
-
-      return collisions;
     }
 
-    public void move(Rectangle display, List<Entity> entities, double time, double gravity)
+    public void Update(List<Entity> entities, double time)
     {
-      double timeElapsed = time - lastTime;
-      System.Windows.Point newLocation = location + velocity * timeElapsed;
-      List<Entity> collisions = collidesWith(entities);
+      double timeElapsed = time - lastUpdate;
+      System.Windows.Point newPosition = position + velocity * timeElapsed;
 
       velocity.Y += gravity;
-      if (newLocation.X - radius > 0 && newLocation.X + radius < display.Width)
+      if (newPosition.X - radius > 0 && newPosition.X + radius < display.Width)
       {
-        location.X = newLocation.X;
+        position.X = newPosition.X;
       }
       else
       {
         velocity.X = -velocity.X * (1 - loss);
-        if (location.X - radius < 0)
-        {
-          location.X = radius;
-        }
-        else if (location.X + radius > display.Width)
-        {
-          location.X = display.Width - radius;
-        }
       }
-      if (newLocation.Y - radius > 0 && newLocation.Y + radius < display.Height)
+      if (newPosition.Y - radius > 0 && newPosition.Y + radius < display.Height)
       {
-        location.Y = newLocation.Y;
+        position.Y = newPosition.Y;
       }
       else
       {
         velocity.Y = -velocity.Y * (1 - loss);
-        if (location.Y - radius < 0)
-        {
-          location.Y = radius;
-        }
-        else if (location.Y + radius > display.Height)
-        {
-          location.Y = display.Height - radius;
-        }
       }
 
-      foreach (Entity entity in collisions)
+      foreach (Entity entity in entities)
       {
-        if (((location + velocity * timeElapsed) - (entity.location + entity.velocity * timeElapsed)).Length < (location - entity.location).Length)
+        double distance = (position - entity.position).Length,
+          nextDistance = ((position + velocity * timeElapsed) - (entity.position + entity.velocity * timeElapsed)).Length;
+
+        if (distance <= radius + entity.radius && nextDistance < distance)
         {
           double v1 = velocity.Length, v2 = entity.velocity.Length,
             theta1 = Math.Atan2(velocity.Y, velocity.X),
             theta2 = Math.Atan2(entity.velocity.Y, entity.velocity.X),
-            phi = Math.Atan2(location.Y - entity.location.Y, location.X - entity.location.X);
+            phi = Math.Atan2(position.Y - entity.position.Y, position.X - entity.position.X);
 
           velocity.X = collisionDx(v1, v2, mass, entity.mass, theta1, theta2, phi) * (1 - loss / 2);
           velocity.Y = collisionDy(v1, v2, mass, entity.mass, theta1, theta2, phi) * (1 - loss / 2);
@@ -91,31 +71,26 @@ namespace elastic_collisions
         }
       }
 
-      lastTime = time;
+      lastUpdate = time;
     }
 
-    public void render(Graphics graphics)
-    {
-      Rectangle shape = new Rectangle((int)(location.X - radius), (int)(location.Y - radius), (int)(radius * 2), (int)(radius * 2));
-
-      graphics.FillEllipse(brush, shape);
-    }
-
-    private System.Windows.Point location;
+    private readonly Rectangle display;
+    private System.Windows.Point position;
     private Vector velocity;
     private readonly int radius;
-    private readonly double mass, loss;
-    private SolidBrush brush;
-    private double lastTime;
+    private readonly double mass, loss, gravity;
+    private double lastUpdate;
 
     private double collisionDx(double v1, double v2, double m1, double m2, double theta1, double theta2, double phi)
     {
-      return (v1 * Math.Cos(theta1 - phi) * (m1 - m2) + 2 * m2 * v2 * Math.Cos(theta2 - phi)) / (m1 + m2) * Math.Cos(phi) + v1 * Math.Sin(theta1 - phi) * Math.Cos(phi + Math.PI / 2);
+      return (v1 * Math.Cos(theta1 - phi) * (m1 - m2) + 2 * m2 * v2 * Math.Cos(theta2 - phi)) / (m1 + m2) * Math.Cos(phi)
+        + v1 * Math.Sin(theta1 - phi) * Math.Cos(phi + Math.PI / 2);
     }
 
     private double collisionDy(double v1, double v2, double m1, double m2, double theta1, double theta2, double phi)
     {
-      return (v1 * Math.Cos(theta1 - phi) * (m1 - m2) + 2 * m2 * v2 * Math.Cos(theta2 - phi)) / (m1 + m2) * Math.Sin(phi) + v1 * Math.Sin(theta1 - phi) * Math.Sin(phi + Math.PI / 2);
+      return (v1 * Math.Cos(theta1 - phi) * (m1 - m2) + 2 * m2 * v2 * Math.Cos(theta2 - phi)) / (m1 + m2) * Math.Sin(phi)
+        + v1 * Math.Sin(theta1 - phi) * Math.Sin(phi + Math.PI / 2);
     }
   }
 }
