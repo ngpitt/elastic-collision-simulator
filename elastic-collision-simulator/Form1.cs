@@ -43,22 +43,21 @@ namespace elastic_collisions
       Stopwatch stopwatch = new Stopwatch();
 
       Invoke(new startDelegate(start));
-      for (int i = 0; entities.Count < entitesNumericUpDown.Value && i < entitesNumericUpDown.Value * 10; i++)
-      {
-        int radius = random.Next((int)minRadiusNumericUpDown.Value, (int)maxRadiusNumericUpDown.Value);
-        System.Windows.Point location = new System.Windows.Point(
-          random.Next(radius, animationPanel.DisplayRectangle.Width - radius),
-          random.Next(radius, animationPanel.DisplayRectangle.Height - radius));
-        Vector velocity = new Vector(
-          random.Next((int)minVelocityNumericUpDown.Value, (int)maxVelocityNumericUpDown.Value),
-          random.Next((int)minVelocityNumericUpDown.Value, (int)maxVelocityNumericUpDown.Value));
-        Entity newEntity = new Entity(location, velocity, radius, (double)lossFactorNumericUpDown.Value);
 
-        if (newEntity.collidesWith(entities).Count == 0)
-        {
-          entities.Add(newEntity);
-        }
-      }
+      int radius = 10;
+      System.Windows.Point position = new System.Windows.Point(
+        animationPanel.DisplayRectangle.Width / 2 * 1e9,
+        animationPanel.DisplayRectangle.Height / 2 * 1e9);
+      Vector velocity = new Vector(0, -15e3);
+      Entity newEntity = new Entity(position, velocity, radius, 1.989e30, (int)lossFactorNumericUpDown.Value, null);
+      entities.Add(newEntity);
+
+      radius = 10;
+      position.X -= 150e9;
+      velocity.Y = 15e3;
+      newEntity = new Entity(position, velocity, radius, 1.989e30, (int)lossFactorNumericUpDown.Value, entities[0]);
+      entities.Add(newEntity);
+      entities[0].setOrbiting(entities[1]);
 
       stopwatch.Start();
       while (!backgroundWorker.CancellationPending)
@@ -69,7 +68,7 @@ namespace elastic_collisions
         graphicsBuffer.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         foreach (Entity entity in entities)
         {
-          entity.move(animationPanel.DisplayRectangle, entities, stopwatch.ElapsedMilliseconds / 1000.0, (double)gravityNumericUpDown.Value);
+          entity.move(animationPanel.DisplayRectangle, entities, stopwatch.ElapsedMilliseconds / 1000.0 * 1e7);
           entity.render(graphicsBuffer.Graphics);
         }
         graphicsBuffer.Render();

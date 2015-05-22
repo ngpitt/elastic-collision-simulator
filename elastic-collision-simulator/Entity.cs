@@ -10,103 +10,88 @@ namespace elastic_collisions
 {
   class Entity
   {
-    public Entity(System.Windows.Point location, Vector velocity, int radius, double loss)
+    public Entity(System.Windows.Point position, Vector velocity, int radius, double mass, double loss, Entity orbiting)
     {
-      this.location = location;
+      this.position = position;
       this.velocity = velocity;
       this.radius = radius;
+      this.mass = mass;
       this.loss = loss;
-      mass = Math.PI * Math.Pow(radius, 2);
+      this.orbiting = orbiting;
       brush = new SolidBrush(Color.Black);
     }
 
-    public List<Entity> collidesWith(List<Entity> entities)
+    public void setOrbiting(Entity orbiting)
     {
-      List<Entity> collisions = new List<Entity>();
-
-      foreach (Entity entity in entities)
-      {
-        if (entity != this && (location - entity.location).Length <= radius + entity.radius)
-        {
-          collisions.Add(entity);
-        }
-      }
-
-      return collisions;
+      this.orbiting = orbiting;
     }
 
-    public void move(Rectangle display, List<Entity> entities, double time, double gravity)
+    public void move(Rectangle display, List<Entity> entities, double time)
     {
       double timeElapsed = time - lastTime;
-      System.Windows.Point newLocation = location + velocity * timeElapsed;
-      List<Entity> collisions = collidesWith(entities);
+      System.Windows.Point newPosition = (position + velocity * timeElapsed);
 
-      velocity.Y += gravity;
-      if (newLocation.X - radius > 0 && newLocation.X + radius < display.Width)
+      if (newPosition.X / 1e9 - radius > 0 && newPosition.X / 1e9 + radius < display.Width)
       {
-        location.X = newLocation.X;
+        position.X = newPosition.X;
       }
       else
       {
         velocity.X = -velocity.X * (1 - loss);
-        if (location.X - radius < 0)
+        if (position.X / 1e9 - radius < 0)
         {
-          location.X = radius;
+          position.X = radius;
         }
-        else if (location.X + radius > display.Width)
+        else if (position.X / 1e9 + radius > display.Width)
         {
-          location.X = display.Width - radius;
+          position.X = display.Width * 1e9 - radius;
         }
       }
-      if (newLocation.Y - radius > 0 && newLocation.Y + radius < display.Height)
+      if (newPosition.Y / 1e9 - radius > 0 && newPosition.Y / 1e9 + radius < display.Height)
       {
-        location.Y = newLocation.Y;
+        position.Y = newPosition.Y;
       }
       else
       {
         velocity.Y = -velocity.Y * (1 - loss);
-        if (location.Y - radius < 0)
+        if (position.Y / 1e9 - radius < 0)
         {
-          location.Y = radius;
+          position.Y = radius;
         }
-        else if (location.Y + radius > display.Height)
+        else if (position.Y / 1e9 + radius > display.Height)
         {
-          location.Y = display.Height - radius;
+          position.Y = display.Height * 1e9 - radius;
         }
       }
 
-      foreach (Entity entity in collisions)
+      if (orbiting != null)
       {
-        if (((location + velocity * timeElapsed) - (entity.location + entity.velocity * timeElapsed)).Length < (location - entity.location).Length)
-        {
-          double v1 = velocity.Length, v2 = entity.velocity.Length,
-            theta1 = Math.Atan2(velocity.Y, velocity.X),
-            theta2 = Math.Atan2(entity.velocity.Y, entity.velocity.X),
-            phi = Math.Atan2(location.Y - entity.location.Y, location.X - entity.location.X);
+        double G = 6.674e-11;
+        Vector distance = (orbiting.position - position);
+        Vector normalized = distance;
+        normalized.Normalize();
+        Vector force = -G * (orbiting.mass * mass) / Math.Pow(distance.Length, 2) * normalized;
 
-          velocity.X = collisionDx(v1, v2, mass, entity.mass, theta1, theta2, phi) * (1 - loss / 2);
-          velocity.Y = collisionDy(v1, v2, mass, entity.mass, theta1, theta2, phi) * (1 - loss / 2);
-          entity.velocity.X = collisionDx(v2, v1, entity.mass, mass, theta2, theta1, phi) * (1 - loss / 2);
-          entity.velocity.Y = collisionDy(v2, v1, entity.mass, mass, theta2, theta1, phi) * (1 - loss / 2);
-        }
+        velocity -= force / mass * timeElapsed;
+
+        lastTime = time;
       }
-
-      lastTime = time;
     }
 
     public void render(Graphics graphics)
     {
-      Rectangle shape = new Rectangle((int)(location.X - radius), (int)(location.Y - radius), (int)(radius * 2), (int)(radius * 2));
+      Rectangle shape = new Rectangle((int)(position.X / 1e9 - radius), (int)(position.Y / 1e9 - radius), (int)(radius * 2), (int)(radius * 2));
 
       graphics.FillEllipse(brush, shape);
     }
 
-    private System.Windows.Point location;
+    private System.Windows.Point position;
     private Vector velocity;
     private readonly int radius;
     private readonly double mass, loss;
     private SolidBrush brush;
     private double lastTime;
+    private Entity orbiting;
 
     private double collisionDx(double v1, double v2, double m1, double m2, double theta1, double theta2, double phi)
     {
