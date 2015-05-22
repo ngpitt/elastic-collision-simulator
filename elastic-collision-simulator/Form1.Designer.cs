@@ -31,7 +31,7 @@
       this.startButton = new System.Windows.Forms.Button();
       this.stopButton = new System.Windows.Forms.Button();
       this.entitesNumericUpDown = new System.Windows.Forms.NumericUpDown();
-      this.backgroundWorker = new System.ComponentModel.BackgroundWorker();
+      this.animationBackgroundWorker = new System.ComponentModel.BackgroundWorker();
       this.lossNumericUpDown = new System.Windows.Forms.NumericUpDown();
       this.minRadiusNumericUpDown = new System.Windows.Forms.NumericUpDown();
       this.maxRadiusNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -111,11 +111,11 @@
             0,
             0});
       // 
-      // backgroundWorker
+      // animationBackgroundWorker
       // 
-      this.backgroundWorker.WorkerSupportsCancellation = true;
-      this.backgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker_DoWork);
-      this.backgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker_RunWorkerCompleted);
+      this.animationBackgroundWorker.WorkerSupportsCancellation = true;
+      this.animationBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.animationBackgroundWorker_DoWork);
+      this.animationBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.animationBackgroundWorker_RunWorkerCompleted);
       // 
       // lossNumericUpDown
       // 
@@ -453,7 +453,7 @@
     private System.Windows.Forms.Button startButton;
     private System.Windows.Forms.Button stopButton;
     private System.Windows.Forms.NumericUpDown entitesNumericUpDown;
-    private System.ComponentModel.BackgroundWorker backgroundWorker;
+    private System.ComponentModel.BackgroundWorker animationBackgroundWorker;
     private System.Windows.Forms.NumericUpDown lossNumericUpDown;
     private System.Windows.Forms.NumericUpDown minRadiusNumericUpDown;
     private System.Windows.Forms.NumericUpDown maxRadiusNumericUpDown;

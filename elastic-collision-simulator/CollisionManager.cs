@@ -22,93 +22,98 @@ namespace elastic_collision_simulator
     {
       get
       {
-        Bitmap bitmap = new Bitmap(screen.Width, screen.Height);
+        Bitmap bitmap = new Bitmap(_screen.Width, _screen.Height);
         Graphics graphics = Graphics.FromImage(bitmap);
 
+        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         graphics.Clear(Color.White);
 
-        for (int i = 0; i < screen.Width; i += boxSize)
+        for (int i = 0; i < _screen.Width; i += _boxSize)
         {
-          graphics.DrawLine(new Pen(new SolidBrush(Color.Red)), i, 0, i, screen.Height);
+          graphics.DrawLine(new Pen(new SolidBrush(Color.Red)), i, 0, i, _screen.Height);
         }
 
-        for (int i = 0; i < screen.Height; i += boxSize)
+        for (int i = 0; i < _screen.Height; i += _boxSize)
         {
-          graphics.DrawLine(new Pen(new SolidBrush(Color.Red)), 0, i, screen.Width, i);
+          graphics.DrawLine(new Pen(new SolidBrush(Color.Red)), 0, i, _screen.Width, i);
         }
 
         return bitmap;
       }
     }
 
-    public CollisionManager(Rectangle screen, int boxSize)
+    public CollisionManager(Rectangle _screen, int _boxSize)
     {
-      this.screen = screen;
-      this.boxSize = boxSize;
-      cols = (int)Math.Ceiling((double)screen.Width / boxSize);
-      rows = (int)Math.Ceiling((double)screen.Height / boxSize);
+      this._screen = _screen;
+      this._boxSize = _boxSize;
+      _cols = (int)Math.Ceiling((double)_screen.Width / _boxSize);
+      _rows = (int)Math.Ceiling((double)_screen.Height / _boxSize);
     }
 
     public void Init()
     {
-      boxes = new Dictionary<int, List<T>>();
+      _boxes = new Dictionary<int, List<T>>();
+      _locks = new object[_cols * _rows];
 
-      for (int i = 0; i < cols * rows; i++)
+      for (int i = 0; i < _cols * _rows; i++)
       {
-        boxes.Add(i, new List<T>());
+        _boxes.Add(i, new List<T>());
+        _locks[i] = new object();
       }
     }
 
     public void Add(T obj)
     {
-      foreach (int id in ids(obj))
+      calculateIds(obj).ForEach(id =>
       {
-        boxes[id].Add(obj);
-      }
+        lock (_locks[id])
+        {
+          _boxes[id].Add(obj);
+        }
+      });
     }
 
     public List<T> Candidates(T obj)
     {
       List<T> candidates = new List<T>();
 
-      foreach (int id in ids(obj))
-      {
-        candidates.AddRange(boxes[id]);
-      }
+      calculateIds(obj).ForEach(id => _boxes[id].ForEach(candidate => addToList<T>(candidates, candidate)));
+      candidates.Remove(obj);
 
       return candidates;
     }
 
-    private readonly Rectangle screen;
-    private readonly int boxSize, cols, rows;
-    private Dictionary<int, List<T>> boxes;
+    private readonly Rectangle _screen;
+    private readonly int _boxSize, _cols, _rows;
+    private Dictionary<int, List<T>> _boxes;
+    private object[] _locks;
 
-    private List<int> ids(T obj)
+    private List<int> calculateIds(T obj)
     {
       Rectangle boundingBox = obj.BoundingBox;
       System.Drawing.Point topLeft = boundingBox.Location,
         bottomRight = boundingBox.Location + boundingBox.Size;
-      List<int> idList = new List<int>();
+      List<int> ids = new List<int>();
 
-      listAdd(idList, hash(topLeft));
-      listAdd(idList, hash(new System.Drawing.Point(topLeft.X, bottomRight.Y)));
-      listAdd(idList, hash(new System.Drawing.Point(bottomRight.X, topLeft.Y)));
-      listAdd(idList, hash(bottomRight));
+      addToList<int>(ids, hash(topLeft));
+      addToList<int>(ids, hash(new System.Drawing.Point(topLeft.X, bottomRight.Y)));
+      addToList<int>(ids, hash(new System.Drawing.Point(bottomRight.X, topLeft.Y)));
+      addToList<int>(ids, hash(bottomRight));
 
-      return idList;
+      return ids;
     }
 
     private int hash(System.Drawing.Point point)
     {
-      return (int)(Math.Floor((double)point.X / boxSize)
-        + Math.Floor((double)point.Y / boxSize) * cols);
+      return (int)(Math.Floor((double)point.X / _boxSize)
+        + Math.Floor((double)point.Y / _boxSize) * _cols);
     }
 
-    private void listAdd(List<int> list, int num)
+    private void addToList<U>(List<U> list, U value)
     {
-      if (!list.Contains(num))
+      if (!list.Contains(value))
       {
-        list.Add(num);
+        list.Add(value);
       }
     }
   }

@@ -12,82 +12,86 @@ namespace elastic_collision_simulator
   {
     public Rectangle BoundingBox
     {
-      get
-      {
-        return new Rectangle((int)(position.X - radius), (int)(position.Y - radius), (int)(radius * 2), (int)(radius * 2));
-      }
+      get { return new Rectangle((int)(_position.X - _radius), (int)(_position.Y - _radius), (int)(_radius * 2), (int)(_radius * 2)); }
+    }
+
+    public Color Color
+    {
+      get { return _color; }
+      set { _color = value; }
     }
 
     public Entity(Rectangle display, System.Windows.Point position, Vector velocity, int radius, double loss, double gravity)
     {
-      this.display = display;
-      this.position = position;
-      this.velocity = velocity;
-      this.radius = radius;
-      this.loss = loss;
-      this.gravity = gravity;
-      mass = Math.PI * Math.Pow(radius, 2);
+      _display = display;
+      _position = position;
+      _velocity = velocity;
+      _radius = radius;
+      _loss = loss;
+      _gravity = gravity;
+      _mass = Math.PI * Math.Pow(_radius, 2);
     }
 
     public void Update(List<Entity> entities, double time)
     {
-      double timeElapsed = time - lastUpdate;
-      System.Windows.Point newPosition = position + velocity * timeElapsed;
+      double timeElapsed = time - _lastUpdate;
+      System.Windows.Point new_position = _position + _velocity * timeElapsed;
 
-      velocity.Y += gravity;
-      if (newPosition.X - radius > 0 && newPosition.X + radius < display.Width)
+      _velocity.Y += _gravity;
+      if (new_position.X - _radius > 0 && new_position.X + _radius < _display.Width)
       {
-        position.X = newPosition.X;
+        _position.X = new_position.X;
       }
       else
       {
-        velocity.X = -velocity.X * (1 - loss);
+        _velocity.X = -_velocity.X * (1 - _loss);
       }
-      if (newPosition.Y - radius > 0 && newPosition.Y + radius < display.Height)
+      if (new_position.Y - _radius > 0 && new_position.Y + _radius < _display.Height)
       {
-        position.Y = newPosition.Y;
+        _position.Y = new_position.Y;
       }
       else
       {
-        velocity.Y = -velocity.Y * (1 - loss);
+        _velocity.Y = -_velocity.Y * (1 - _loss);
       }
 
-      foreach (Entity entity in entities)
+      entities.ForEach(entity =>
       {
-        double distance = (position - entity.position).Length,
-          nextDistance = ((position + velocity * timeElapsed) - (entity.position + entity.velocity * timeElapsed)).Length;
+        double distance = (_position - entity._position).Length,
+          nextDistance = ((_position + _velocity * timeElapsed) - (entity._position + entity._velocity * timeElapsed)).Length;
 
-        if (distance <= radius + entity.radius && nextDistance < distance)
+        if (distance <= _radius + entity._radius && nextDistance < distance)
         {
-          double v1 = velocity.Length, v2 = entity.velocity.Length,
-            theta1 = Math.Atan2(velocity.Y, velocity.X),
-            theta2 = Math.Atan2(entity.velocity.Y, entity.velocity.X),
-            phi = Math.Atan2(position.Y - entity.position.Y, position.X - entity.position.X);
+          double v1 = _velocity.Length, v2 = entity._velocity.Length,
+            theta1 = Math.Atan2(_velocity.Y, _velocity.X),
+            theta2 = Math.Atan2(entity._velocity.Y, entity._velocity.X),
+            phi = Math.Atan2(_position.Y - entity._position.Y, _position.X - entity._position.X);
 
-          velocity.X = collisionDx(v1, v2, mass, entity.mass, theta1, theta2, phi) * (1 - loss / 2);
-          velocity.Y = collisionDy(v1, v2, mass, entity.mass, theta1, theta2, phi) * (1 - loss / 2);
-          entity.velocity.X = collisionDx(v2, v1, entity.mass, mass, theta2, theta1, phi) * (1 - loss / 2);
-          entity.velocity.Y = collisionDy(v2, v1, entity.mass, mass, theta2, theta1, phi) * (1 - loss / 2);
+          _velocity.X = calculateDx(v1, v2, _mass, entity._mass, theta1, theta2, phi) * (1 - _loss / 2);
+          _velocity.Y = calculateDy(v1, v2, _mass, entity._mass, theta1, theta2, phi) * (1 - _loss / 2);
+          entity._velocity.X = calculateDx(v2, v1, entity._mass, _mass, theta2, theta1, phi) * (1 - _loss / 2);
+          entity._velocity.Y = calculateDy(v2, v1, entity._mass, _mass, theta2, theta1, phi) * (1 - _loss / 2);
         }
-      }
+      });
 
-      lastUpdate = time;
+      _lastUpdate = time;
     }
 
-    private readonly Rectangle display;
-    private System.Windows.Point position;
-    private Vector velocity;
-    private readonly int radius;
-    private readonly double mass, loss, gravity;
-    private double lastUpdate;
+    private readonly Rectangle _display;
+    private System.Windows.Point _position;
+    private Vector _velocity;
+    private readonly int _radius;
+    private readonly double _mass, _loss, _gravity;
+    private Color _color;
+    private double _lastUpdate = 0;
 
-    private double collisionDx(double v1, double v2, double m1, double m2, double theta1, double theta2, double phi)
+    private double calculateDx(double v1, double v2, double m1, double m2, double theta1, double theta2, double phi)
     {
       return (v1 * Math.Cos(theta1 - phi) * (m1 - m2) + 2 * m2 * v2 * Math.Cos(theta2 - phi)) / (m1 + m2) * Math.Cos(phi)
         + v1 * Math.Sin(theta1 - phi) * Math.Cos(phi + Math.PI / 2);
     }
 
-    private double collisionDy(double v1, double v2, double m1, double m2, double theta1, double theta2, double phi)
+    private double calculateDy(double v1, double v2, double m1, double m2, double theta1, double theta2, double phi)
     {
       return (v1 * Math.Cos(theta1 - phi) * (m1 - m2) + 2 * m2 * v2 * Math.Cos(theta2 - phi)) / (m1 + m2) * Math.Sin(phi)
         + v1 * Math.Sin(theta1 - phi) * Math.Sin(phi + Math.PI / 2);

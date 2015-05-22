@@ -20,8 +20,8 @@ namespace elastic_collision_simulator
       InitializeComponent();
     }
 
-    private bool terminate = false;
-    private delegate void startDelegate();
+    private bool _terminate = false;
+    private delegate void StartDelegate();
 
     private void minRadiusNumericUpDown_Validating(object sender, CancelEventArgs e)
     {
@@ -65,32 +65,34 @@ namespace elastic_collision_simulator
     private void startButton_Click(object sender, EventArgs e)
     {
       startButton.Enabled = false;
-      backgroundWorker.RunWorkerAsync();
+      animationBackgroundWorker.RunWorkerAsync();
     }
 
     private void stopButton_Click(object sender, EventArgs e)
     {
       stopButton.Enabled = false;
-      backgroundWorker.CancelAsync();
+      animationBackgroundWorker.CancelAsync();
     }
 
-    private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+    private void animationBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
     {
       int boxSize = Math.Max(25, (int)maxRadiusNumericUpDown.Value * 2), fpsCounter = 0, fps = 0;
       long lastUpdate = 0;
-      Random random = new Random();
       BufferedGraphicsContext graphicsContext = new BufferedGraphicsContext();
-      List<Entity> entities = new List<Entity>();
+      List<Entity> entities = new List<Entity>(), firstEntitityCandidates = null;
+      CollisionManager<Entity> collisionManager;
+      Random random = new Random();
       Stopwatch stopwatch = new Stopwatch();
+      Bitmap collisionBoxes;
 
-      Invoke(new startDelegate(start));
+      Invoke(new StartDelegate(start));
 
       for (int i = 0; entities.Count < entitesNumericUpDown.Value; i++)
       {
         int radius = random.Next((int)minRadiusNumericUpDown.Value, (int)maxRadiusNumericUpDown.Value),
           velocity = random.Next((int)minVelocityNumericUpDown.Value, (int)maxVelocityNumericUpDown.Value);
         double angle = 2 * Math.PI * random.NextDouble();
-        
+
         entities.Add(new Entity(animationPanel.DisplayRectangle,
           new System.Windows.Point(
             random.Next(radius + 1, animationPanel.DisplayRectangle.Width - radius - 1),
@@ -104,16 +106,14 @@ namespace elastic_collision_simulator
         boxSize = (int)boxSizeNumericUpDown.Value;
       }
 
-      CollisionManager<Entity> collisionManager = new CollisionManager<Entity>(animationPanel.DisplayRectangle, boxSize);
-      Bitmap collisionBoxes = collisionManager.Boxes;
+      collisionManager = new CollisionManager<Entity>(animationPanel.DisplayRectangle, boxSize);
+      collisionBoxes = collisionManager.Boxes;
 
       stopwatch.Start();
 
-      while (!backgroundWorker.CancellationPending)
+      while (!animationBackgroundWorker.CancellationPending)
       {
-        bool firstEntity = true;
         BufferedGraphics graphicsBuffer = graphicsContext.Allocate(animationPanel.CreateGraphics(), animationPanel.DisplayRectangle);
-        List<Entity> firstEntitityCandidates = null, candidates;
 
         graphicsBuffer.Graphics.Clear(Color.White);
         graphicsBuffer.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -125,35 +125,31 @@ namespace elastic_collision_simulator
 
         collisionManager.Init();
 
-        foreach (Entity entity in entities)
+        Parallel.ForEach(entities, entity => collisionManager.Add(entity));
+
+        if (showCollisionCandidatesCheckBox.Checked)
         {
-          collisionManager.Add(entity);
+          firstEntitityCandidates = collisionManager.Candidates(entities[0]);
+          entities[0].Color = Color.Blue;
         }
 
-        foreach (Entity entity in entities)
+        Parallel.ForEach(entities, entity =>
         {
-          SolidBrush solidBrush = new SolidBrush(Color.Black);
+          List<Entity> candidates = collisionManager.Candidates(entity);
 
-          if (firstEntity && showCollisionCandidatesCheckBox.Checked)
+          if (showCollisionCandidatesCheckBox.Checked && firstEntitityCandidates.Contains(entity))
           {
-            firstEntitityCandidates = collisionManager.Candidates(entity);
-            candidates = firstEntitityCandidates;
-            solidBrush.Color = Color.Blue;
+            entity.Color = Color.Green;
           }
-          else
+          else if (entity.Color != Color.Blue)
           {
-            candidates = collisionManager.Candidates(entity);
-            if (showCollisionCandidatesCheckBox.Checked && firstEntitityCandidates.Contains(entity))
-            {
-              solidBrush.Color = Color.Green;
-            }
+            entity.Color = Color.Black;
           }
 
           entity.Update(candidates, stopwatch.ElapsedMilliseconds / 1000.0);
-          graphicsBuffer.Graphics.FillEllipse(solidBrush, entity.BoundingBox);
+        });
 
-          firstEntity = false;
-        }
+        entities.ForEach(entity => graphicsBuffer.Graphics.FillEllipse(new SolidBrush(entity.Color), entity.BoundingBox));
 
         if (stopwatch.ElapsedMilliseconds - lastUpdate >= 1000)
         {
@@ -176,7 +172,7 @@ namespace elastic_collision_simulator
       }
     }
 
-    private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+    private void animationBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
     {
       startButton.Enabled = true;
       settingsGroupBox.Enabled = true;
@@ -184,7 +180,7 @@ namespace elastic_collision_simulator
       MinimizeBox = true;
       MaximizeBox = true;
 
-      if (terminate)
+      if (_terminate)
       {
         Close();
       }
@@ -192,10 +188,10 @@ namespace elastic_collision_simulator
 
     private void mainForm_FormClosing(object sender, FormClosingEventArgs e)
     {
-      if (backgroundWorker.IsBusy)
+      if (animationBackgroundWorker.IsBusy)
       {
-        terminate = true;
-        backgroundWorker.CancelAsync();
+        _terminate = true;
+        animationBackgroundWorker.CancelAsync();
         e.Cancel = true;
       }
     }
