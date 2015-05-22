@@ -26,7 +26,7 @@ namespace elastic_collisions
       rows = (int)Math.Ceiling((double)screen.Height / boxSize);
     }
 
-    public Bitmap Grid
+    public Bitmap Boxes
     {
       get
       {

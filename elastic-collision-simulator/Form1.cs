@@ -23,6 +23,45 @@ namespace elastic_collisions
     private bool terminate = false;
     private delegate void startDelegate();
 
+    private void minRadiusNumericUpDown_Validating(object sender, CancelEventArgs e)
+    {
+      if (minRadiusNumericUpDown.Value > maxRadiusNumericUpDown.Value)
+      {
+        e.Cancel = true;
+      }
+    }
+
+    private void maxRadiusNumericUpDown_Validating(object sender, CancelEventArgs e)
+    {
+      if (maxRadiusNumericUpDown.Value < minRadiusNumericUpDown.Value
+        || maxRadiusNumericUpDown.Value > animationPanel.DisplayRectangle.Width / 2
+        || maxRadiusNumericUpDown.Value > animationPanel.DisplayRectangle.Height / 2)
+      {
+        e.Cancel = true;
+      }
+    }
+
+    private void minVelocityNumericUpDown_Validating(object sender, CancelEventArgs e)
+    {
+      if (minVelocityNumericUpDown.Value > maxVelocityNumericUpDown.Value)
+      {
+        e.Cancel = true;
+      }
+    }
+
+    private void maxVelocityNumericUpDown_Validating(object sender, CancelEventArgs e)
+    {
+      if (maxVelocityNumericUpDown.Value < minVelocityNumericUpDown.Value)
+      {
+        e.Cancel = true;
+      }
+    }
+
+    private void customGridSizeCheckBox_CheckedChanged(object sender, EventArgs e)
+    {
+      boxSizeLabel.Enabled = boxSizeNumericUpDown.Enabled = customBoxSizeCheckBox.Checked;
+    }
+
     private void startButton_Click(object sender, EventArgs e)
     {
       startButton.Enabled = false;
@@ -37,40 +76,43 @@ namespace elastic_collisions
 
     private void backgroundWorker_DoWork(object sender, DoWorkEventArgs e)
     {
-      int fps = 0, counter = 0;
+      int boxSize = Math.Max(25, (int)maxRadiusNumericUpDown.Value * 2), fpsCounter = 0, fps = 0;
       long lastUpdate = 0;
-      BufferedGraphicsContext graphicsContext = new BufferedGraphicsContext();
       Random random = new Random();
+      BufferedGraphicsContext graphicsContext = new BufferedGraphicsContext();
       List<Entity> entities = new List<Entity>();
-      CollisionManager<Entity> collisionManager = new CollisionManager<Entity>(
-        animationPanel.DisplayRectangle, Math.Max(25, (int)maxRadiusNumericUpDown.Value * 2));
       Stopwatch stopwatch = new Stopwatch();
-      Bitmap collisionGrid = collisionManager.Grid;
 
       Invoke(new startDelegate(start));
-      collisionManager.Init();
 
       for (int i = 0; entities.Count < entitesNumericUpDown.Value; i++)
       {
-        int radius = random.Next((int)minRadiusNumericUpDown.Value, (int)maxRadiusNumericUpDown.Value);
+        int radius = random.Next((int)minRadiusNumericUpDown.Value, (int)maxRadiusNumericUpDown.Value),
+          velocity = random.Next((int)minVelocityNumericUpDown.Value, (int)maxVelocityNumericUpDown.Value);
+        double angle = 2 * Math.PI * random.NextDouble();
         
         entities.Add(new Entity(animationPanel.DisplayRectangle,
           new System.Windows.Point(
-            random.Next(radius, animationPanel.DisplayRectangle.Width - radius),
-            random.Next(radius, animationPanel.DisplayRectangle.Height - radius)),
-          new Vector(
-            random.Next((int)minVelocityNumericUpDown.Value, (int)maxVelocityNumericUpDown.Value),
-            random.Next((int)minVelocityNumericUpDown.Value, (int)maxVelocityNumericUpDown.Value)),
-          radius, (double)lossFactorNumericUpDown.Value, (double)gravityNumericUpDown.Value));
+            random.Next(radius + 1, animationPanel.DisplayRectangle.Width - radius - 1),
+            random.Next(radius + 1, animationPanel.DisplayRectangle.Height - radius - 1)),
+          new Vector(velocity * Math.Cos(angle), velocity * Math.Sin(angle)),
+          radius, (double)lossNumericUpDown.Value, (double)gravityNumericUpDown.Value));
       }
+
+      if (customBoxSizeCheckBox.Checked)
+      {
+        boxSize = (int)boxSizeNumericUpDown.Value;
+      }
+
+      CollisionManager<Entity> collisionManager = new CollisionManager<Entity>(animationPanel.DisplayRectangle, boxSize);
+      Bitmap collisionBoxes = collisionManager.Boxes;
 
       stopwatch.Start();
 
       while (!backgroundWorker.CancellationPending)
       {
-        BufferedGraphics graphicsBuffer =
-          graphicsContext.Allocate(animationPanel.CreateGraphics(), animationPanel.DisplayRectangle);
         bool firstEntity = true;
+        BufferedGraphics graphicsBuffer = graphicsContext.Allocate(animationPanel.CreateGraphics(), animationPanel.DisplayRectangle);
         List<Entity> firstEntitityCandidates = null, candidates;
 
         graphicsBuffer.Graphics.Clear(Color.White);
@@ -78,7 +120,7 @@ namespace elastic_collisions
 
         if (showCollisionGridCheckBox.Checked)
         {
-          graphicsBuffer.Graphics.DrawImage(collisionGrid, 0, 0);
+          graphicsBuffer.Graphics.DrawImage(collisionBoxes, 0, 0);
         }
 
         collisionManager.Init();
@@ -108,23 +150,15 @@ namespace elastic_collisions
           }
 
           entity.Update(candidates, stopwatch.ElapsedMilliseconds / 1000.0);
-
-          if (fillEntitiesCheckBox.Checked)
-          {
-            graphicsBuffer.Graphics.FillEllipse(solidBrush, entity.BoundingBox);
-          }
-          else
-          {
-            graphicsBuffer.Graphics.DrawEllipse(new Pen(solidBrush), entity.BoundingBox);
-          }
+          graphicsBuffer.Graphics.FillEllipse(solidBrush, entity.BoundingBox);
 
           firstEntity = false;
         }
 
         if (stopwatch.ElapsedMilliseconds - lastUpdate >= 1000)
         {
-          fps = counter;
-          counter = 0;
+          fps = fpsCounter;
+          fpsCounter = 0;
           lastUpdate = stopwatch.ElapsedMilliseconds;
         }
 
@@ -132,20 +166,23 @@ namespace elastic_collisions
         {
           graphicsBuffer.Graphics.DrawString("FPS: " + Convert.ToString(fps),
             new Font(FontFamily.GenericMonospace, 8, FontStyle.Regular),
-            new SolidBrush(Color.Black), new PointF(0, 0));
+            new SolidBrush(Color.Black), 0, 0);
         }
 
         graphicsBuffer.Render();
         graphicsBuffer.Dispose();
-        counter++;
+
+        fpsCounter++;
       }
     }
 
     private void backgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
     {
       startButton.Enabled = true;
-      enableControls(true);
+      settingsGroupBox.Enabled = true;
       FormBorderStyle = FormBorderStyle.Sizable;
+      MinimizeBox = true;
+      MaximizeBox = true;
 
       if (terminate)
       {
@@ -166,25 +203,10 @@ namespace elastic_collisions
     private void start()
     {
       stopButton.Enabled = true;
-      enableControls(false);
+      settingsGroupBox.Enabled = false;
       FormBorderStyle = FormBorderStyle.FixedSingle;
-    }
-
-    private void enableControls(bool value)
-    {
-      entitesNumericUpDown.Enabled = value;
-      minRadiusNumericUpDown.Enabled = value;
-      maxRadiusNumericUpDown.Enabled = value;
-      minVelocityNumericUpDown.Enabled = value;
-      maxVelocityNumericUpDown.Enabled = value;
-      lossFactorNumericUpDown.Enabled = value;
-      gravityNumericUpDown.Enabled = value;
-      fillEntitiesCheckBox.Enabled = value;
-      showFPSCheckBox.Enabled = value;
-      showCollisionGridCheckBox.Enabled = value;
-      showCollisionCandidatesCheckBox.Enabled = value;
-      MinimizeBox = value;
-      MaximizeBox = value;
+      MinimizeBox = false;
+      MaximizeBox = false;
     }
   }
 }
