@@ -10,6 +10,14 @@ namespace elastic_collisions
 {
   class Entity : ICollisionManager
   {
+    public Rectangle BoundingBox
+    {
+      get
+      {
+        return new Rectangle((int)(position.X - radius), (int)(position.Y - radius), (int)(radius * 2), (int)(radius * 2));
+      }
+    }
+
     public Entity(Rectangle display, System.Windows.Point position, Vector velocity, int radius, double loss, double gravity)
     {
       this.display = display;
@@ -19,14 +27,6 @@ namespace elastic_collisions
       this.loss = loss;
       this.gravity = gravity;
       mass = Math.PI * Math.Pow(radius, 2);
-    }
-
-    public Rectangle BoundingBox
-    {
-      get
-      {
-        return new Rectangle((int)(position.X - radius), (int)(position.Y - radius), (int)(radius * 2), (int)(radius * 2));
-      }
     }
 
     public void Update(List<Entity> entities, double time)

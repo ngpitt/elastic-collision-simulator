@@ -18,14 +18,6 @@ namespace elastic_collisions
 
   class CollisionManager<T> where T : ICollisionManager
   {
-    public CollisionManager(Rectangle screen, int boxSize)
-    {
-      this.screen = screen;
-      this.boxSize = boxSize;
-      cols = (int)Math.Ceiling((double)screen.Width / boxSize);
-      rows = (int)Math.Ceiling((double)screen.Height / boxSize);
-    }
-
     public Bitmap Boxes
     {
       get
@@ -37,7 +29,7 @@ namespace elastic_collisions
 
         for (int i = 0; i < screen.Width; i += boxSize)
         {
-          graphics.DrawLine(new Pen(new SolidBrush(Color.Red)), i, 0, i, screen.Height); 
+          graphics.DrawLine(new Pen(new SolidBrush(Color.Red)), i, 0, i, screen.Height);
         }
 
         for (int i = 0; i < screen.Height; i += boxSize)
@@ -47,6 +39,14 @@ namespace elastic_collisions
 
         return bitmap;
       }
+    }
+
+    public CollisionManager(Rectangle screen, int boxSize)
+    {
+      this.screen = screen;
+      this.boxSize = boxSize;
+      cols = (int)Math.Ceiling((double)screen.Width / boxSize);
+      rows = (int)Math.Ceiling((double)screen.Height / boxSize);
     }
 
     public void Init()
@@ -83,25 +83,33 @@ namespace elastic_collisions
     private readonly int boxSize, cols, rows;
     private Dictionary<int, List<T>> boxes;
 
-    private HashSet<int> ids(T obj)
+    private List<int> ids(T obj)
     {
       Rectangle boundingBox = obj.BoundingBox;
       System.Drawing.Point topLeft = boundingBox.Location,
         bottomRight = boundingBox.Location + boundingBox.Size;
-      HashSet<int> hashes = new HashSet<int>();
+      List<int> idList = new List<int>();
 
-      hashes.Add(hash(topLeft));
-      hashes.Add(hash(new System.Drawing.Point(topLeft.X, bottomRight.Y)));
-      hashes.Add(hash(new System.Drawing.Point(bottomRight.X, topLeft.Y)));
-      hashes.Add(hash(bottomRight));
+      listAdd(idList, hash(topLeft));
+      listAdd(idList, hash(new System.Drawing.Point(topLeft.X, bottomRight.Y)));
+      listAdd(idList, hash(new System.Drawing.Point(bottomRight.X, topLeft.Y)));
+      listAdd(idList, hash(bottomRight));
 
-      return hashes;
+      return idList;
     }
 
     private int hash(System.Drawing.Point point)
     {
       return (int)(Math.Floor((double)point.X / boxSize)
         + Math.Floor((double)point.Y / boxSize) * cols);
+    }
+
+    private void listAdd(List<int> list, int num)
+    {
+      if (!list.Contains(num))
+      {
+        list.Add(num);
+      }
     }
   }
 }
