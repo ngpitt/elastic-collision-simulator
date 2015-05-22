@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace elastic_collisions
+namespace elastic_collision_simulator
 {
   static class Program
   {

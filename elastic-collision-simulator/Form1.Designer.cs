@@ -1,4 +1,4 @@
-﻿namespace elastic_collisions
+﻿namespace elastic_collision_simulator
 {
   partial class Form1
   {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Drawing;
 using System.Windows;
 
-namespace elastic_collisions
+namespace elastic_collision_simulator
 {
   class Entity : ICollisionManager
   {

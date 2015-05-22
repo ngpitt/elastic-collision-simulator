@@ -11,7 +11,7 @@ using System.Windows;
 using System.Diagnostics;
 using System.Threading;
 
-namespace elastic_collisions
+namespace elastic_collision_simulator
 {
   public partial class Form1 : Form
   {
