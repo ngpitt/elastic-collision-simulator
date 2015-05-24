@@ -31,7 +31,7 @@
       this.startButton = new System.Windows.Forms.Button();
       this.stopButton = new System.Windows.Forms.Button();
       this.entitesNumericUpDown = new System.Windows.Forms.NumericUpDown();
-      this.animationBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+      this.simulationBackgroundWorker = new System.ComponentModel.BackgroundWorker();
       this.lossNumericUpDown = new System.Windows.Forms.NumericUpDown();
       this.minRadiusNumericUpDown = new System.Windows.Forms.NumericUpDown();
       this.maxRadiusNumericUpDown = new System.Windows.Forms.NumericUpDown();
@@ -52,7 +52,7 @@
       this.gravityNumericUpDown = new System.Windows.Forms.NumericUpDown();
       this.gravityLabel = new System.Windows.Forms.Label();
       this.simulationGroupBox = new System.Windows.Forms.GroupBox();
-      this.animationPanel = new System.Windows.Forms.Panel();
+      this.simulationPanel = new System.Windows.Forms.Panel();
       this.controlsGroupBox = new System.Windows.Forms.GroupBox();
       ((System.ComponentModel.ISupportInitialize)(this.entitesNumericUpDown)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.lossNumericUpDown)).BeginInit();
@@ -110,11 +110,11 @@
             0,
             0});
       // 
-      // animationBackgroundWorker
+      // simulationBackgroundWorker
       // 
-      this.animationBackgroundWorker.WorkerSupportsCancellation = true;
-      this.animationBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.animationBackgroundWorker_DoWork);
-      this.animationBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.animationBackgroundWorker_RunWorkerCompleted);
+      this.simulationBackgroundWorker.WorkerSupportsCancellation = true;
+      this.simulationBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.simulationBackgroundWorker_DoWork);
+      this.simulationBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.simulationBackgroundWorker_RunWorkerCompleted);
       // 
       // lossNumericUpDown
       // 
@@ -378,7 +378,7 @@
       this.simulationGroupBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.simulationGroupBox.Controls.Add(this.animationPanel);
+      this.simulationGroupBox.Controls.Add(this.simulationPanel);
       this.simulationGroupBox.Location = new System.Drawing.Point(186, 12);
       this.simulationGroupBox.MinimumSize = new System.Drawing.Size(100, 100);
       this.simulationGroupBox.Name = "simulationGroupBox";
@@ -387,16 +387,16 @@
       this.simulationGroupBox.TabStop = false;
       this.simulationGroupBox.Text = "Simulation";
       // 
-      // animationPanel
+      // simulationPanel
       // 
-      this.animationPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+      this.simulationPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-      this.animationPanel.BackColor = System.Drawing.Color.White;
-      this.animationPanel.Location = new System.Drawing.Point(6, 19);
-      this.animationPanel.Name = "animationPanel";
-      this.animationPanel.Size = new System.Drawing.Size(474, 360);
-      this.animationPanel.TabIndex = 7;
+      this.simulationPanel.BackColor = System.Drawing.Color.White;
+      this.simulationPanel.Location = new System.Drawing.Point(6, 19);
+      this.simulationPanel.Name = "simulationPanel";
+      this.simulationPanel.Size = new System.Drawing.Size(474, 360);
+      this.simulationPanel.TabIndex = 7;
       // 
       // controlsGroupBox
       // 
@@ -441,7 +441,7 @@
     private System.Windows.Forms.Button startButton;
     private System.Windows.Forms.Button stopButton;
     private System.Windows.Forms.NumericUpDown entitesNumericUpDown;
-    private System.ComponentModel.BackgroundWorker animationBackgroundWorker;
+    private System.ComponentModel.BackgroundWorker simulationBackgroundWorker;
     private System.Windows.Forms.NumericUpDown lossNumericUpDown;
     private System.Windows.Forms.NumericUpDown minRadiusNumericUpDown;
     private System.Windows.Forms.NumericUpDown maxRadiusNumericUpDown;
@@ -455,7 +455,7 @@
     private System.Windows.Forms.Label minVelocityLabel;
     private System.Windows.Forms.GroupBox settingsGroupBox;
     private System.Windows.Forms.GroupBox simulationGroupBox;
-    private System.Windows.Forms.Panel animationPanel;
+    private System.Windows.Forms.Panel simulationPanel;
     private System.Windows.Forms.NumericUpDown gravityNumericUpDown;
     private System.Windows.Forms.Label gravityLabel;
     private System.Windows.Forms.CheckBox showFPSCheckBox;

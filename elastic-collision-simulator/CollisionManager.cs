@@ -31,7 +31,7 @@ namespace elastic_collision_simulator
       {
         for (int j = 0; j < _screen.Height; j += _boxSize)
         {
-          if (ids.Contains(hash(new System.Drawing.Point(i, j))))
+          if (ids.Contains(calculateId(new System.Drawing.Point(i, j))))
           {
             graphics.FillRectangle(new SolidBrush(Color.Yellow), i, j, _boxSize, _boxSize);
           }
@@ -96,15 +96,15 @@ namespace elastic_collision_simulator
         bottomRight = boundingBox.Location + boundingBox.Size;
       List<int> ids = new List<int>();
 
-      addToList<int>(ids, hash(topLeft));
-      addToList<int>(ids, hash(new System.Drawing.Point(topLeft.X, bottomRight.Y)));
-      addToList<int>(ids, hash(new System.Drawing.Point(bottomRight.X, topLeft.Y)));
-      addToList<int>(ids, hash(bottomRight));
+      addToList<int>(ids, calculateId(topLeft));
+      addToList<int>(ids, calculateId(new System.Drawing.Point(topLeft.X, bottomRight.Y)));
+      addToList<int>(ids, calculateId(new System.Drawing.Point(bottomRight.X, topLeft.Y)));
+      addToList<int>(ids, calculateId(bottomRight));
 
       return ids;
     }
 
-    private int hash(System.Drawing.Point point)
+    private int calculateId(System.Drawing.Point point)
     {
       return (int)(Math.Floor((double)point.X / _boxSize)
         + Math.Floor((double)point.Y / _boxSize) * _cols);

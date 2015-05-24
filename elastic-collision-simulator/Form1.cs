@@ -34,8 +34,8 @@ namespace elastic_collision_simulator
     private void maxRadiusNumericUpDown_Validating(object sender, CancelEventArgs e)
     {
       if (maxRadiusNumericUpDown.Value < minRadiusNumericUpDown.Value
-        || maxRadiusNumericUpDown.Value > animationPanel.DisplayRectangle.Width / 2
-        || maxRadiusNumericUpDown.Value > animationPanel.DisplayRectangle.Height / 2)
+        || maxRadiusNumericUpDown.Value > simulationPanel.DisplayRectangle.Width / 2
+        || maxRadiusNumericUpDown.Value > simulationPanel.DisplayRectangle.Height / 2)
       {
         e.Cancel = true;
       }
@@ -65,16 +65,16 @@ namespace elastic_collision_simulator
     private void startButton_Click(object sender, EventArgs e)
     {
       startButton.Enabled = false;
-      animationBackgroundWorker.RunWorkerAsync();
+      simulationBackgroundWorker.RunWorkerAsync();
     }
 
     private void stopButton_Click(object sender, EventArgs e)
     {
       stopButton.Enabled = false;
-      animationBackgroundWorker.CancelAsync();
+      simulationBackgroundWorker.CancelAsync();
     }
 
-    private void animationBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+    private void simulationBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
     {
       int boxSize = Math.Max(25, (int)maxRadiusNumericUpDown.Value * 2), fpsCounter = 0, fps = 0;
       long lastUpdate = 0;
@@ -92,10 +92,10 @@ namespace elastic_collision_simulator
           velocity = random.Next((int)minVelocityNumericUpDown.Value, (int)maxVelocityNumericUpDown.Value);
         double angle = 2 * Math.PI * random.NextDouble();
 
-        entities.Add(new Entity(animationPanel.DisplayRectangle,
+        entities.Add(new Entity(simulationPanel.DisplayRectangle,
           new System.Windows.Point(
-            random.Next(radius + 1, animationPanel.DisplayRectangle.Width - radius - 1),
-            random.Next(radius + 1, animationPanel.DisplayRectangle.Height - radius - 1)),
+            random.Next(radius + 1, simulationPanel.DisplayRectangle.Width - radius - 1),
+            random.Next(radius + 1, simulationPanel.DisplayRectangle.Height - radius - 1)),
           new Vector(velocity * Math.Cos(angle), velocity * Math.Sin(angle)),
           radius, (double)lossNumericUpDown.Value, (double)gravityNumericUpDown.Value));
       }
@@ -105,13 +105,13 @@ namespace elastic_collision_simulator
         boxSize = (int)boxSizeNumericUpDown.Value;
       }
 
-      collisionManager = new CollisionManager<Entity>(animationPanel.DisplayRectangle, boxSize);
+      collisionManager = new CollisionManager<Entity>(simulationPanel.DisplayRectangle, boxSize);
 
       stopwatch.Start();
 
-      while (!animationBackgroundWorker.CancellationPending)
+      while (!simulationBackgroundWorker.CancellationPending)
       {
-        BufferedGraphics graphicsBuffer = graphicsContext.Allocate(animationPanel.CreateGraphics(), animationPanel.DisplayRectangle);
+        BufferedGraphics graphicsBuffer = graphicsContext.Allocate(simulationPanel.CreateGraphics(), simulationPanel.DisplayRectangle);
 
         graphicsBuffer.Graphics.Clear(Color.White);
         graphicsBuffer.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -172,7 +172,7 @@ namespace elastic_collision_simulator
       }
     }
 
-    private void animationBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+    private void simulationBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
     {
       startButton.Enabled = true;
       settingsGroupBox.Enabled = true;
@@ -188,10 +188,10 @@ namespace elastic_collision_simulator
 
     private void mainForm_FormClosing(object sender, FormClosingEventArgs e)
     {
-      if (animationBackgroundWorker.IsBusy)
+      if (simulationBackgroundWorker.IsBusy)
       {
         _terminate = true;
-        animationBackgroundWorker.CancelAsync();
+        simulationBackgroundWorker.CancelAsync();
         e.Cancel = true;
       }
     }
