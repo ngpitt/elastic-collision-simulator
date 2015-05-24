@@ -83,7 +83,6 @@ namespace elastic_collision_simulator
       CollisionManager<Entity> collisionManager;
       Random random = new Random();
       Stopwatch stopwatch = new Stopwatch();
-      Bitmap collisionBoxes;
 
       Invoke(new StartDelegate(start));
 
@@ -107,7 +106,6 @@ namespace elastic_collision_simulator
       }
 
       collisionManager = new CollisionManager<Entity>(animationPanel.DisplayRectangle, boxSize);
-      collisionBoxes = collisionManager.Boxes;
 
       stopwatch.Start();
 
@@ -118,16 +116,11 @@ namespace elastic_collision_simulator
         graphicsBuffer.Graphics.Clear(Color.White);
         graphicsBuffer.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-        if (showCollisionGridCheckBox.Checked)
-        {
-          graphicsBuffer.Graphics.DrawImage(collisionBoxes, 0, 0);
-        }
-
         collisionManager.Init();
 
         Parallel.ForEach(entities, entity => collisionManager.Add(entity));
 
-        if (showCollisionCandidatesCheckBox.Checked)
+        if (showBoxesCheckBox.Checked)
         {
           firstEntitityCandidates = collisionManager.Candidates(entities[0]);
           entities[0].Color = Color.Blue;
@@ -137,7 +130,7 @@ namespace elastic_collision_simulator
         {
           List<Entity> candidates = collisionManager.Candidates(entity);
 
-          if (showCollisionCandidatesCheckBox.Checked && firstEntitityCandidates.Contains(entity))
+          if (showBoxesCheckBox.Checked && firstEntitityCandidates.Contains(entity))
           {
             entity.Color = Color.Green;
           }
@@ -148,6 +141,13 @@ namespace elastic_collision_simulator
 
           entity.Update(candidates, stopwatch.ElapsedMilliseconds / 1000.0);
         });
+
+        if (showBoxesCheckBox.Checked)
+        {
+          Bitmap collisionBoxes = collisionManager.Boxes(entities[0]);
+
+          graphicsBuffer.Graphics.DrawImage(collisionBoxes, 0, 0);
+        }
 
         entities.ForEach(entity => graphicsBuffer.Graphics.FillEllipse(new SolidBrush(entity.Color), entity.BoundingBox));
 

@@ -47,9 +47,8 @@
       this.customBoxSizeCheckBox = new System.Windows.Forms.CheckBox();
       this.boxSizeLabel = new System.Windows.Forms.Label();
       this.boxSizeNumericUpDown = new System.Windows.Forms.NumericUpDown();
-      this.showCollisionCandidatesCheckBox = new System.Windows.Forms.CheckBox();
       this.showFPSCheckBox = new System.Windows.Forms.CheckBox();
-      this.showCollisionGridCheckBox = new System.Windows.Forms.CheckBox();
+      this.showBoxesCheckBox = new System.Windows.Forms.CheckBox();
       this.gravityNumericUpDown = new System.Windows.Forms.NumericUpDown();
       this.gravityLabel = new System.Windows.Forms.Label();
       this.simulationGroupBox = new System.Windows.Forms.GroupBox();
@@ -73,7 +72,7 @@
       this.startButton.Location = new System.Drawing.Point(9, 19);
       this.startButton.Name = "startButton";
       this.startButton.Size = new System.Drawing.Size(148, 23);
-      this.startButton.TabIndex = 13;
+      this.startButton.TabIndex = 11;
       this.startButton.Text = "Start";
       this.startButton.UseVisualStyleBackColor = true;
       this.startButton.Click += new System.EventHandler(this.startButton_Click);
@@ -84,7 +83,7 @@
       this.stopButton.Location = new System.Drawing.Point(9, 48);
       this.stopButton.Name = "stopButton";
       this.stopButton.Size = new System.Drawing.Size(148, 23);
-      this.stopButton.TabIndex = 14;
+      this.stopButton.TabIndex = 12;
       this.stopButton.Text = "Stop";
       this.stopButton.UseVisualStyleBackColor = true;
       this.stopButton.Click += new System.EventHandler(this.stopButton_Click);
@@ -271,9 +270,8 @@
       this.settingsGroupBox.Controls.Add(this.customBoxSizeCheckBox);
       this.settingsGroupBox.Controls.Add(this.boxSizeLabel);
       this.settingsGroupBox.Controls.Add(this.boxSizeNumericUpDown);
-      this.settingsGroupBox.Controls.Add(this.showCollisionCandidatesCheckBox);
       this.settingsGroupBox.Controls.Add(this.showFPSCheckBox);
-      this.settingsGroupBox.Controls.Add(this.showCollisionGridCheckBox);
+      this.settingsGroupBox.Controls.Add(this.showBoxesCheckBox);
       this.settingsGroupBox.Controls.Add(this.gravityNumericUpDown);
       this.settingsGroupBox.Controls.Add(this.gravityLabel);
       this.settingsGroupBox.Controls.Add(this.lossFactorLabel);
@@ -290,7 +288,7 @@
       this.settingsGroupBox.Controls.Add(this.minRadiusNumericUpDown);
       this.settingsGroupBox.Location = new System.Drawing.Point(12, 12);
       this.settingsGroupBox.Name = "settingsGroupBox";
-      this.settingsGroupBox.Size = new System.Drawing.Size(168, 320);
+      this.settingsGroupBox.Size = new System.Drawing.Size(168, 297);
       this.settingsGroupBox.TabIndex = 16;
       this.settingsGroupBox.TabStop = false;
       this.settingsGroupBox.Text = "Settings";
@@ -339,35 +337,25 @@
             0,
             0});
       // 
-      // showCollisionCandidatesCheckBox
-      // 
-      this.showCollisionCandidatesCheckBox.AutoSize = true;
-      this.showCollisionCandidatesCheckBox.Location = new System.Drawing.Point(9, 296);
-      this.showCollisionCandidatesCheckBox.Name = "showCollisionCandidatesCheckBox";
-      this.showCollisionCandidatesCheckBox.Size = new System.Drawing.Size(150, 17);
-      this.showCollisionCandidatesCheckBox.TabIndex = 12;
-      this.showCollisionCandidatesCheckBox.Text = "Show Collision Candidates";
-      this.showCollisionCandidatesCheckBox.UseVisualStyleBackColor = true;
-      // 
       // showFPSCheckBox
       // 
       this.showFPSCheckBox.AutoSize = true;
-      this.showFPSCheckBox.Location = new System.Drawing.Point(9, 250);
+      this.showFPSCheckBox.Location = new System.Drawing.Point(9, 273);
       this.showFPSCheckBox.Name = "showFPSCheckBox";
       this.showFPSCheckBox.Size = new System.Drawing.Size(76, 17);
       this.showFPSCheckBox.TabIndex = 10;
       this.showFPSCheckBox.Text = "Show FPS";
       this.showFPSCheckBox.UseVisualStyleBackColor = true;
       // 
-      // showCollisionGridCheckBox
+      // showBoxesCheckBox
       // 
-      this.showCollisionGridCheckBox.AutoSize = true;
-      this.showCollisionGridCheckBox.Location = new System.Drawing.Point(9, 273);
-      this.showCollisionGridCheckBox.Name = "showCollisionGridCheckBox";
-      this.showCollisionGridCheckBox.Size = new System.Drawing.Size(126, 17);
-      this.showCollisionGridCheckBox.TabIndex = 11;
-      this.showCollisionGridCheckBox.Text = "Show Collision Boxes";
-      this.showCollisionGridCheckBox.UseVisualStyleBackColor = true;
+      this.showBoxesCheckBox.AutoSize = true;
+      this.showBoxesCheckBox.Location = new System.Drawing.Point(9, 250);
+      this.showBoxesCheckBox.Name = "showBoxesCheckBox";
+      this.showBoxesCheckBox.Size = new System.Drawing.Size(85, 17);
+      this.showBoxesCheckBox.TabIndex = 9;
+      this.showBoxesCheckBox.Text = "Show Boxes";
+      this.showBoxesCheckBox.UseVisualStyleBackColor = true;
       // 
       // gravityNumericUpDown
       // 
@@ -394,7 +382,7 @@
       this.simulationGroupBox.Location = new System.Drawing.Point(186, 12);
       this.simulationGroupBox.MinimumSize = new System.Drawing.Size(100, 100);
       this.simulationGroupBox.Name = "simulationGroupBox";
-      this.simulationGroupBox.Size = new System.Drawing.Size(486, 408);
+      this.simulationGroupBox.Size = new System.Drawing.Size(486, 385);
       this.simulationGroupBox.TabIndex = 0;
       this.simulationGroupBox.TabStop = false;
       this.simulationGroupBox.Text = "Simulation";
@@ -407,14 +395,14 @@
       this.animationPanel.BackColor = System.Drawing.Color.White;
       this.animationPanel.Location = new System.Drawing.Point(6, 19);
       this.animationPanel.Name = "animationPanel";
-      this.animationPanel.Size = new System.Drawing.Size(474, 383);
+      this.animationPanel.Size = new System.Drawing.Size(474, 360);
       this.animationPanel.TabIndex = 7;
       // 
       // controlsGroupBox
       // 
       this.controlsGroupBox.Controls.Add(this.stopButton);
       this.controlsGroupBox.Controls.Add(this.startButton);
-      this.controlsGroupBox.Location = new System.Drawing.Point(12, 338);
+      this.controlsGroupBox.Location = new System.Drawing.Point(12, 315);
       this.controlsGroupBox.Name = "controlsGroupBox";
       this.controlsGroupBox.Size = new System.Drawing.Size(168, 82);
       this.controlsGroupBox.TabIndex = 17;
@@ -425,7 +413,7 @@
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(684, 432);
+      this.ClientSize = new System.Drawing.Size(684, 409);
       this.Controls.Add(this.controlsGroupBox);
       this.Controls.Add(this.simulationGroupBox);
       this.Controls.Add(this.settingsGroupBox);
@@ -471,8 +459,7 @@
     private System.Windows.Forms.NumericUpDown gravityNumericUpDown;
     private System.Windows.Forms.Label gravityLabel;
     private System.Windows.Forms.CheckBox showFPSCheckBox;
-    private System.Windows.Forms.CheckBox showCollisionGridCheckBox;
-    private System.Windows.Forms.CheckBox showCollisionCandidatesCheckBox;
+    private System.Windows.Forms.CheckBox showBoxesCheckBox;
     private System.Windows.Forms.Label boxSizeLabel;
     private System.Windows.Forms.NumericUpDown boxSizeNumericUpDown;
     private System.Windows.Forms.CheckBox customBoxSizeCheckBox;

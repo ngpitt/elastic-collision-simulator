@@ -18,36 +18,37 @@ namespace elastic_collision_simulator
 
   class CollisionManager<T> where T : ICollisionManager
   {
-    public Bitmap Boxes
+    public Bitmap Boxes(T obj) 
     {
-      get
+      Bitmap bitmap = new Bitmap(_screen.Width, _screen.Height);
+      Graphics graphics = Graphics.FromImage(bitmap);
+      List<int> ids = calculateIds(obj);
+
+      graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+      graphics.Clear(Color.White);
+
+      for (int i = 0; i < _screen.Width; i += _boxSize)
       {
-        Bitmap bitmap = new Bitmap(_screen.Width, _screen.Height);
-        Graphics graphics = Graphics.FromImage(bitmap);
-
-        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        graphics.Clear(Color.White);
-
-        for (int i = 0; i < _screen.Width; i += _boxSize)
+        for (int j = 0; j < _screen.Height; j += _boxSize)
         {
-          graphics.DrawLine(new Pen(new SolidBrush(Color.Red)), i, 0, i, _screen.Height);
-        }
+          if (ids.Contains(hash(new System.Drawing.Point(i, j))))
+          {
+            graphics.FillRectangle(new SolidBrush(Color.Yellow), i, j, _boxSize, _boxSize);
+          }
 
-        for (int i = 0; i < _screen.Height; i += _boxSize)
-        {
-          graphics.DrawLine(new Pen(new SolidBrush(Color.Red)), 0, i, _screen.Width, i);
+          graphics.DrawRectangle(new Pen(new SolidBrush(Color.Red)), i, j, _boxSize, _boxSize);
         }
-
-        return bitmap;
       }
+
+      return bitmap;
     }
 
-    public CollisionManager(Rectangle _screen, int _boxSize)
+    public CollisionManager(Rectangle screen, int boxSize)
     {
-      this._screen = _screen;
-      this._boxSize = _boxSize;
-      _cols = (int)Math.Ceiling((double)_screen.Width / _boxSize);
-      _rows = (int)Math.Ceiling((double)_screen.Height / _boxSize);
+      _screen = screen;
+      _boxSize = boxSize;
+      _cols = (int)Math.Ceiling((double)screen.Width / boxSize);
+      _rows = (int)Math.Ceiling((double)screen.Height / boxSize);
     }
 
     public void Init()
