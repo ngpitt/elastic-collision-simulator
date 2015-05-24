@@ -18,25 +18,29 @@ namespace elastic_collision_simulator
 
   class CollisionManager<T> where T : ICollisionManager
   {
-    public Bitmap Boxes(T obj) 
+    public Bitmap Boxes(T obj)
     {
       Bitmap bitmap = new Bitmap(_screen.Width, _screen.Height);
-      Graphics graphics = Graphics.FromImage(bitmap);
-      List<int> ids = calculateIds(obj);
 
-      graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-      graphics.Clear(Color.White);
-
-      for (int i = 0; i < _screen.Width; i += _boxSize)
+      using (Graphics graphics = Graphics.FromImage(bitmap))
       {
-        for (int j = 0; j < _screen.Height; j += _boxSize)
-        {
-          if (ids.Contains(calculateId(new System.Drawing.Point(i, j))))
-          {
-            graphics.FillRectangle(new SolidBrush(Color.Yellow), i, j, _boxSize, _boxSize);
-          }
+        List<int> ids = calculateIds(obj);
 
-          graphics.DrawRectangle(new Pen(new SolidBrush(Color.Red)), i, j, _boxSize, _boxSize);
+        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+        for (int i = 0; i < _screen.Width; i += _boxSize)
+        {
+          for (int j = 0; j < _screen.Height; j += _boxSize)
+          {
+            if (ids.Contains(calculateId(new System.Drawing.Point(i, j))))
+            {
+              graphics.FillRectangle(new SolidBrush(Color.Yellow),
+                i, j, _boxSize, _boxSize);
+            }
+
+            graphics.DrawRectangle(new Pen(new SolidBrush(Color.Red)),
+              i, j, _boxSize, _boxSize);
+          }
         }
       }
 
@@ -54,12 +58,10 @@ namespace elastic_collision_simulator
     public void Init()
     {
       _boxes = new Dictionary<int, List<T>>();
-      _locks = new object[_cols * _rows];
 
       for (int i = 0; i < _cols * _rows; i++)
       {
         _boxes.Add(i, new List<T>());
-        _locks[i] = new object();
       }
     }
 
@@ -67,7 +69,7 @@ namespace elastic_collision_simulator
     {
       calculateIds(obj).ForEach(id =>
       {
-        lock (_locks[id])
+        lock (_boxes[id])
         {
           _boxes[id].Add(obj);
         }
@@ -78,7 +80,9 @@ namespace elastic_collision_simulator
     {
       List<T> candidates = new List<T>();
 
-      calculateIds(obj).ForEach(id => _boxes[id].ForEach(candidate => addToList<T>(candidates, candidate)));
+      calculateIds(obj).ForEach(id =>
+        _boxes[id].ForEach(candidate =>
+          addToList<T>(candidates, candidate)));
       candidates.Remove(obj);
 
       return candidates;
@@ -87,7 +91,6 @@ namespace elastic_collision_simulator
     private readonly Rectangle _screen;
     private readonly int _boxSize, _cols, _rows;
     private Dictionary<int, List<T>> _boxes;
-    private object[] _locks;
 
     private List<int> calculateIds(T obj)
     {

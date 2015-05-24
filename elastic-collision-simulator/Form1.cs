@@ -76,11 +76,11 @@ namespace elastic_collision_simulator
 
     private void simulationBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
     {
-      int boxSize = Math.Max(25, (int)maxRadiusNumericUpDown.Value * 2), fpsCounter = 0, fps = 0;
+      int boxSize = Math.Max(25, (int)maxRadiusNumericUpDown.Value * 2),
+        fpsCounter = 0,
+        fps = 0;
       long lastUpdate = 0;
-      BufferedGraphicsContext graphicsContext = new BufferedGraphicsContext();
       List<Entity> entities = new List<Entity>(), firstEntitityCandidates = null;
-      CollisionManager<Entity> collisionManager;
       Random random = new Random();
       Stopwatch stopwatch = new Stopwatch();
 
@@ -88,8 +88,12 @@ namespace elastic_collision_simulator
 
       for (int i = 0; entities.Count < entitesNumericUpDown.Value; i++)
       {
-        int radius = random.Next((int)minRadiusNumericUpDown.Value, (int)maxRadiusNumericUpDown.Value),
-          velocity = random.Next((int)minVelocityNumericUpDown.Value, (int)maxVelocityNumericUpDown.Value);
+        int radius = random.Next(
+          (int)minRadiusNumericUpDown.Value,
+          (int)maxRadiusNumericUpDown.Value),
+          velocity = random.Next(
+          (int)minVelocityNumericUpDown.Value,
+          (int)maxVelocityNumericUpDown.Value);
         double angle = 2 * Math.PI * random.NextDouble();
 
         entities.Add(new Entity(simulationPanel.DisplayRectangle,
@@ -97,7 +101,9 @@ namespace elastic_collision_simulator
             random.Next(radius + 1, simulationPanel.DisplayRectangle.Width - radius - 1),
             random.Next(radius + 1, simulationPanel.DisplayRectangle.Height - radius - 1)),
           new Vector(velocity * Math.Cos(angle), velocity * Math.Sin(angle)),
-          radius, (double)lossNumericUpDown.Value, (double)gravityNumericUpDown.Value));
+          radius,
+          (double)lossNumericUpDown.Value,
+          (double)gravityNumericUpDown.Value));
       }
 
       if (customBoxSizeCheckBox.Checked)
@@ -105,74 +111,84 @@ namespace elastic_collision_simulator
         boxSize = (int)boxSizeNumericUpDown.Value;
       }
 
-      collisionManager = new CollisionManager<Entity>(simulationPanel.DisplayRectangle, boxSize);
+      CollisionManager<Entity> collisionManager = new CollisionManager<Entity>(
+        simulationPanel.DisplayRectangle, boxSize);
 
       stopwatch.Start();
 
-      while (!simulationBackgroundWorker.CancellationPending)
+      using (BufferedGraphicsContext graphicsContext = new BufferedGraphicsContext())
       {
-        BufferedGraphics graphicsBuffer = graphicsContext.Allocate(simulationPanel.CreateGraphics(), simulationPanel.DisplayRectangle);
-
-        graphicsBuffer.Graphics.Clear(Color.White);
-        graphicsBuffer.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-        collisionManager.Init();
-
-        Parallel.ForEach(entities, entity => collisionManager.Add(entity));
-
-        if (showBoxesCheckBox.Checked)
+        while (!simulationBackgroundWorker.CancellationPending)
         {
-          firstEntitityCandidates = collisionManager.Candidates(entities[0]);
-          entities[0].Color = Color.Blue;
-        }
-
-        Parallel.ForEach(entities, entity =>
-        {
-          List<Entity> candidates = collisionManager.Candidates(entity);
-
-          if (showBoxesCheckBox.Checked && firstEntitityCandidates.Contains(entity))
+          using (BufferedGraphics graphicsBuffer = graphicsContext.Allocate(
+            simulationPanel.CreateGraphics(), simulationPanel.DisplayRectangle))
           {
-            entity.Color = Color.Green;
+            graphicsBuffer.Graphics.Clear(Color.White);
+            graphicsBuffer.Graphics.SmoothingMode =
+              System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+            collisionManager.Init();
+
+            Parallel.ForEach(entities, entity => collisionManager.Add(entity));
+
+            if (showBoxesCheckBox.Checked)
+            {
+              firstEntitityCandidates = collisionManager.Candidates(entities[0]);
+              entities[0].Color = Color.Blue;
+            }
+
+            Parallel.ForEach(entities, entity =>
+            {
+              if (showBoxesCheckBox.Checked && firstEntitityCandidates.Contains(entity))
+              {
+                entity.Color = Color.Green;
+              }
+              else if (entity.Color != Color.Blue)
+              {
+                entity.Color = Color.Black;
+              }
+
+              entity.Update(
+                collisionManager.Candidates(entity),
+                stopwatch.ElapsedMilliseconds / 1000.0);
+            });
+
+            if (showBoxesCheckBox.Checked)
+            {
+              Bitmap bitmap = collisionManager.Boxes(entities[0]);
+
+              graphicsBuffer.Graphics.DrawImage(bitmap, 0, 0);
+              bitmap.Dispose();
+            }
+
+            entities.ForEach(entity => graphicsBuffer.Graphics.FillEllipse(
+              new SolidBrush(entity.Color), entity.BoundingBox));
+
+            if (stopwatch.ElapsedMilliseconds - lastUpdate >= 1000)
+            {
+              fps = fpsCounter;
+              fpsCounter = 0;
+              lastUpdate = stopwatch.ElapsedMilliseconds;
+            }
+
+            if (showFPSCheckBox.Checked)
+            {
+              graphicsBuffer.Graphics.DrawString(
+                "FPS: " + Convert.ToString(fps),
+                new Font(FontFamily.GenericMonospace, 8, FontStyle.Regular),
+                new SolidBrush(Color.Black), 0, 0);
+            }
+
+            graphicsBuffer.Render();
+
+            fpsCounter++;
           }
-          else if (entity.Color != Color.Blue)
-          {
-            entity.Color = Color.Black;
-          }
-
-          entity.Update(candidates, stopwatch.ElapsedMilliseconds / 1000.0);
-        });
-
-        if (showBoxesCheckBox.Checked)
-        {
-          Bitmap collisionBoxes = collisionManager.Boxes(entities[0]);
-
-          graphicsBuffer.Graphics.DrawImage(collisionBoxes, 0, 0);
         }
-
-        entities.ForEach(entity => graphicsBuffer.Graphics.FillEllipse(new SolidBrush(entity.Color), entity.BoundingBox));
-
-        if (stopwatch.ElapsedMilliseconds - lastUpdate >= 1000)
-        {
-          fps = fpsCounter;
-          fpsCounter = 0;
-          lastUpdate = stopwatch.ElapsedMilliseconds;
-        }
-
-        if (showFPSCheckBox.Checked)
-        {
-          graphicsBuffer.Graphics.DrawString("FPS: " + Convert.ToString(fps),
-            new Font(FontFamily.GenericMonospace, 8, FontStyle.Regular),
-            new SolidBrush(Color.Black), 0, 0);
-        }
-
-        graphicsBuffer.Render();
-        graphicsBuffer.Dispose();
-
-        fpsCounter++;
       }
     }
 
-    private void simulationBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+    private void simulationBackgroundWorker_RunWorkerCompleted(
+      object sender, RunWorkerCompletedEventArgs e)
     {
       startButton.Enabled = true;
       settingsGroupBox.Enabled = true;

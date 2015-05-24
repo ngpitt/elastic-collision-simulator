@@ -418,7 +418,7 @@
       this.Controls.Add(this.simulationGroupBox);
       this.Controls.Add(this.settingsGroupBox);
       this.Name = "Form1";
-      this.Text = "Elastic Collision Silumator";
+      this.Text = "Elastic Collision Simulator";
       this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.mainForm_FormClosing);
       ((System.ComponentModel.ISupportInitialize)(this.entitesNumericUpDown)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.lossNumericUpDown)).EndInit();
