@@ -120,11 +120,11 @@ namespace elastic_collision_simulator
       {
         while (!simulationBackgroundWorker.CancellationPending)
         {
-          using (BufferedGraphics graphicsBuffer = graphicsContext.Allocate(
+          using (BufferedGraphics graphics = graphicsContext.Allocate(
             simulationPanel.CreateGraphics(), simulationPanel.DisplayRectangle))
           {
-            graphicsBuffer.Graphics.Clear(Color.White);
-            graphicsBuffer.Graphics.SmoothingMode =
+            graphics.Graphics.Clear(Color.White);
+            graphics.Graphics.SmoothingMode =
               System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             collisionManager.Init();
@@ -155,14 +155,16 @@ namespace elastic_collision_simulator
 
             if (showBoxesCheckBox.Checked)
             {
-              Bitmap bitmap = collisionManager.Boxes(entities[0]);
-
-              graphicsBuffer.Graphics.DrawImage(bitmap, 0, 0);
-              bitmap.Dispose();
+              collisionManager.DrawBoxes(graphics.Graphics, entities[0]);
             }
 
-            entities.ForEach(entity => graphicsBuffer.Graphics.FillEllipse(
-              new SolidBrush(entity.Color), entity.BoundingBox));
+            entities.ForEach(entity =>
+            {
+              using (SolidBrush brush = new SolidBrush(entity.Color))
+              {
+                graphics.Graphics.FillEllipse(brush, entity.BoundingBox);
+              }
+            });
 
             if (stopwatch.ElapsedMilliseconds - lastUpdate >= 1000)
             {
@@ -173,13 +175,15 @@ namespace elastic_collision_simulator
 
             if (showFPSCheckBox.Checked)
             {
-              graphicsBuffer.Graphics.DrawString(
-                "FPS: " + Convert.ToString(fps),
-                new Font(FontFamily.GenericMonospace, 8, FontStyle.Regular),
-                new SolidBrush(Color.Black), 0, 0);
+              using (Font font = new Font(FontFamily.GenericMonospace, 8, FontStyle.Regular))
+              using (SolidBrush brush = new SolidBrush(Color.Black))
+              {
+                graphics.Graphics.DrawString("FPS: " + Convert.ToString(fps),
+                  font, brush, 0, 0);
+              }
             }
 
-            graphicsBuffer.Render();
+            graphics.Render();
 
             fpsCounter++;
           }

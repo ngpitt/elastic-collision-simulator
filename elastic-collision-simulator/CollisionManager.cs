@@ -18,33 +18,28 @@ namespace elastic_collision_simulator
 
   class CollisionManager<T> where T : ICollisionManager
   {
-    public Bitmap Boxes(T obj)
+    public void DrawBoxes(Graphics graphics, T obj)
     {
-      Bitmap bitmap = new Bitmap(_screen.Width, _screen.Height);
+      List<int> ids = calculateIds(obj);
 
-      using (Graphics graphics = Graphics.FromImage(bitmap))
+      for (int i = 0; i < _screen.Width; i += _boxSize)
       {
-        List<int> ids = calculateIds(obj);
-
-        graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-        for (int i = 0; i < _screen.Width; i += _boxSize)
+        for (int j = 0; j < _screen.Height; j += _boxSize)
         {
-          for (int j = 0; j < _screen.Height; j += _boxSize)
+          if (ids.Contains(calculateId(new System.Drawing.Point(i, j))))
           {
-            if (ids.Contains(calculateId(new System.Drawing.Point(i, j))))
+            using (SolidBrush brush = new SolidBrush(Color.Yellow))
             {
-              graphics.FillRectangle(new SolidBrush(Color.Yellow),
-                i, j, _boxSize, _boxSize);
+              graphics.FillRectangle(brush, i, j, _boxSize, _boxSize);
             }
+          }
 
-            graphics.DrawRectangle(new Pen(new SolidBrush(Color.Red)),
-              i, j, _boxSize, _boxSize);
+          using (Pen pen = new Pen(Color.Red))
+          {
+            graphics.DrawRectangle(pen, i, j, _boxSize, _boxSize);
           }
         }
       }
-
-      return bitmap;
     }
 
     public CollisionManager(Rectangle screen, int boxSize)
